@@ -1,97 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, TextInput, AppState, Platform, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react'
+import { Text, SafeAreaView, Button, TextInput, Alert, Platform } from 'react-native'
+import { NetworkInfo } from 'react-native-network-info'
+import UdpSocketType from 'react-native-udp/lib/types/UdpSocket'
 import UdpSocket from 'react-native-udp';
-import { NetworkInfo } from 'react-native-network-info';
-
-const socket = UdpSocket.createSocket({ type: 'udp4', debug: true, reusePort: true });
 
 const App = () => {
 
-  const [isServer, setIsServer] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('');
-  const [ipAddress, setIpAddress] = useState('');
-  const [message, setMessage] = useState('');
-  const [ipServer, setIpServer] = useState('192.168.0.30');
+  const socketRef = useRef<UdpSocketType | null>(null)
+
+  const [isHost, setIsHost] = useState(false)
+  const [ipAddress, setIpAddress] = useState('')
+  const [clientIp, setClientIp] = useState('')
+  const [hostIp, setHostIp] = useState('192.168.0.30')
 
   useEffect(() => {
-    const fetchIpAddress = async () => {
-      const ip = await NetworkInfo.getIPV4Address();
-      if (ip)
-        setIpAddress(ip);
-      console.log(Platform.OS + ' ip: ' + ip)
-    };
+    socketRef.current = UdpSocket.createSocket({ type: 'udp4', debug: true })
 
-    fetchIpAddress();
+    fetchIpAddress()
+    if (isHost) {
+      socketRef.current?.on('message', (data) => {
+        console.info('SERVER -- Message received:', data.toString());
+      });
+
+      socketRef.current?.on('listening', (data, rinfo) => {
+        setClientIp(rinfo?.address)
+        setIsHost(true)
+        console.info('SERVER -- listening on port:', socketRef.current?.address().port);
+      });
+
+
+      socketRef.current?.bind(8888);
+    } else {
+      socketRef.current?.on('message', (data, rinfo) => {
+        if (rinfo?.address === hostIp) {
+          console.info('CLIENT -- Message received:', data.toString());
+        } else {
+
+        }
+      });
+      socketRef.current?.bind(8887);
+    }
 
     return () => {
-      socket.close(() => console.log(Platform.OS + ' socket closed'));
+      setClientIp('')
+      socketRef.current?.close(() => console.info('-- SOCKET CLOSED --'));
     };
-  }, [isServer]);
+  }, [isHost])
 
-  const sendMessage = () => {
-    if (isServer) return;
-
-    socket.send('Hello from the client!', undefined, undefined, 8888, ipServer, (error) => {
-      if (error) {
-        console.log('Error sending message:', error);
-      } else {
-        console.log('Message sent successfully');
-      }
-    });
-    socket.once('message', async (message, remoteInfo) => {
-      setMessage(message.toString())
-    });
-  };
-
-  const triggerServer = () => {
-    if (!isServer) {
-      socket.on('message', (data, rinfo) => {
-        setMessage(data.toString())
-        Alert.alert('triggered')
-        socket.send('Hello from the server!', undefined, undefined, rinfo?.port, rinfo?.address, (error) => {
-          if (error) {
-            console.log('Error sending message:', error);
-          } else {
-            console.log('Message sent successfully');
-          }
-        });
-        console.log('Message received:', data.toString());
-      });
-
-      socket.on('listening', () => {
-        console.log('Server listening on port:', socket.address().port);
-        setConnectionStatus(`Server listening on port ${socket.address().port}`);
-      });
-
-      socket.bind(8888);
-    } else {
-      socket.close(() => console.log('--- server closed ---'))
-    }
-    setIsServer(!isServer)
+  const fetchIpAddress = async () => {
+    const ip = await NetworkInfo.getIPV4Address();
+    if (ip)
+      setIpAddress(ip);
   }
 
-  const triggerClient = () => {
-    socket.bind(8887)
+  const joinHost = () => {
+    if (hostIp) {
+      socketRef.current?.send(
+        'hehehehehehe',
+        undefined,
+        undefined,
+        8888,
+        hostIp,
+        (error) => {
+          if (error) {
+            console.error(`CLIENT -- Error sending message:`, error);
+          } else {
+            console.info(`CLIENT -- Message sent successfully`);
+          }
+        });
+    } else {
+      Alert.alert('Please enter a valid IP address')
+    }
+  }
+
+  const sendMsgToSocket = ({ msg, ip, port }: sendMsgToSocketType) => {
+    socketRef.current?.send(
+      msg,
+      undefined,
+      undefined,
+      port,
+      ip,
+      (error) => {
+        if (error) {
+          console.error(`${ip}:${port} -- Error sending message:`, error);
+        } else {
+          console.info(`${ip}:${port} -- Message sent successfully`);
+        }
+      });
   }
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>{connectionStatus}</Text>
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button
-        title={isServer ? 'stop server' : 'start server'}
-        onPress={triggerServer}
-      />
-      <Button title="Look for Sender" onPress={triggerClient} disabled={isServer} />
-      <Button title="Send Message" onPress={sendMessage} disabled={isServer} />
-      <TextInput
-        style={{ borderWidth: 1 }}
-        onChangeText={setIpServer}
-        value={ipServer}
-      />
-      <Text>IP adress: {ipAddress}</Text>
-      <Text>Message received: {message}</Text>
-    </View>
-  );
+        title={isHost ? 'Stop hosting' : 'Host the game'}
+        onPress={() => setIsHost(!isHost)} />
+      {!isHost && <>
+        <TextInput
+          onChangeText={setHostIp}
+          value={hostIp}
+          style={{ borderWidth: 1, width: '60%', padding: 5 }} />
+        <Button
+          title='Join the game'
+          onPress={joinHost} />
+      </>}
+      {isHost && <Text>{'Join on: ' + ipAddress}</Text>}
+    </SafeAreaView>
+  )
 }
 
 export default App
+
+interface sendMsgToSocketType {
+  msg: string,
+  port: number,
+  ip: string,
+}
