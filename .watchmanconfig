@@ -1,0 +1,9 @@
+{
+    "version": "3.1.0",
+    "config": {
+        "ignore_dirs": [
+            "node_modules",
+            "tmp"
+        ]
+    }
+}
