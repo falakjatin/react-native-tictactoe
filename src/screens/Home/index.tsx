@@ -1,10 +1,14 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import React from 'react'
+
+import Game from '../../components/Game'
+
+import styles from './styles'
 
 const HomeScreen = () => {
   return (
-    <View>
-      <Text>Home Screen</Text>
+    <View style={styles.container}>
+      <Game />
     </View>
   )
 }

@@ -1,3 +1,21 @@
 {
   "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    //   "baseUrl": "./src/",
+    //   "paths": {
+    //     "@components/*": [
+    //       "components/*"
+    //     ],
+    //     "@screens/*": [
+    //       "screens/*"
+    //     ],
+    //   }
+  },
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+  ],
 }
