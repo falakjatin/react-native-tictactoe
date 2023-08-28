@@ -1,5 +1,11 @@
-import { View, TouchableWithoutFeedback, Image, Text, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
+import {
+  View,
+  TouchableWithoutFeedback,
+  Image,
+  Text,
+  TouchableOpacity,
+} from 'react-native'
 
 import styles from './styles'
 import { CONDITIONS } from '../../constants'
@@ -11,16 +17,15 @@ const Game = () => {
 
   const [userInputs, setUserInputs] = useState<number[]>([])
   const [opInputs, setOpInputs] = useState<number[]>([])
-  const [result, setResult] = useState({ You: 0, Opponent: 0 })
-  const [winner, setWinner] = useState<'You' | 'Opponent' | ''>('')
+  const [result, setResult] = useState({ You: 0, Opponent: 0, Draw: 0 })
+  const [winner, setWinner] = useState<DecisionType>('')
 
-  useEffect(() => {
-    // check if the user has lost or not
-  }, [userInputs, opInputs])
+  // useEffect(() => {
+  //   // check if the user has lost or not
+  // }, [userInputs, opInputs])
 
   const AIAction = (currSelected: number[]) => {
-    const winner = decideWinner(currSelected)
-    console.log(winner)
+    const winner = decideWinner(currSelected, opInputs)
     if (winner !== '') {
       setWinner(winner)
       return
@@ -29,16 +34,21 @@ const Game = () => {
       const inputs = currSelected.concat(opInputs)
       const randomNumber = Math.round(Math.random() * 8.3)
       if (inputs.every(d => d !== randomNumber)) {
-        setOpInputs(opInputs.concat(randomNumber))
+        const newSteps = opInputs.concat(randomNumber)
+        setOpInputs(newSteps)
+        const winner = decideWinner(currSelected, newSteps)
+        if (winner !== '') {
+          setWinner(winner)
+        }
         break
       }
     }
   }
 
-  const decideWinner = (currSelected: number[]) => {
-    let decision: '' | 'You' | 'Opponent' = ''
+  const decideWinner = (userInputs: number[], opInputs: number[]) => {
+    let decision: DecisionType = ''
     for (let i = 0; i < CONDITIONS.length; i++) {
-      if (CONDITIONS[i].every(a => currSelected.includes(a))) {
+      if (CONDITIONS[i].every(a => userInputs.includes(a))) {
         decision = 'You'
         break
       }
@@ -46,6 +56,9 @@ const Game = () => {
         decision = 'Opponent'
         break
       }
+    }
+    if (((userInputs.length + opInputs.length) === 9) && !decision) {
+      decision = 'Draw'
     }
     return decision
   }
@@ -77,7 +90,7 @@ const Game = () => {
         {numbers.map((i) => <TouchableWithoutFeedback
           key={i}
           onPress={() => afterProceedingStep(i)}
-          disabled={(userInputs.includes(i) || opInputs.includes(i)) && !!winner}>
+          disabled={(userInputs.includes(i) || opInputs.includes(i)) || !!winner}>
           <View style={styles.cubes}>
             {(userInputs.includes(i) || opInputs.includes(i)) && <Image
               style={styles.icons}
@@ -87,7 +100,8 @@ const Game = () => {
       </View>
       <View style={styles.resultContainer}>
         {winner === 'You' && <Text>Congratulation!</Text>}
-        {winner && <Text>{winner + ' won the game.'}</Text>}
+        {(winner === 'Opponent' || winner === 'You') && <Text>{winner + ' won the game.'}</Text>}
+        {winner === 'Draw' && <Text>{'Game ' + winner}</Text>}
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.7}
@@ -102,3 +116,5 @@ const Game = () => {
 export default Game
 
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+type DecisionType = '' | 'Opponent' | 'You' | 'Draw' | ''

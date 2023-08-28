@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     cubes: {
-        height:  Utils.manageWidthPer(30),
+        height: Utils.manageWidthPer(30),
         width: Utils.manageWidthPer(30),
         backgroundColor: '#f1f1f1',
         justifyContent: 'center',
@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
     },
     cubeContainer: {
+        backgroundColor: 'red',
         width: Utils.manageWidthPer(90),
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -47,6 +48,7 @@ const styles = StyleSheet.create({
     },
     resultContainer: {
         width: Utils.manageWidthPer(90),
+        alignItems: 'center',
     }
 })
 

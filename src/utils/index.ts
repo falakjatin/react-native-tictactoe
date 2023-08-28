@@ -2,7 +2,7 @@ import { Dimensions } from "react-native";
 
 import DeviceInfo from "react-native-device-info";
 
-const { height, width } = Dimensions.get('screen')
+const { height, width } = Dimensions.get('window')
 
 const isTab = () => DeviceInfo.isTablet()
 
@@ -24,7 +24,7 @@ const increaseSize = (size: number) => {
 
 const manageWidthPer = (size: number) => {
     if (isTab()) {
-        return ((width * size) / 100) * 0.5
+        return ((width * size) / 100) * 0.7
     } else {
         return (width * size) / 100;
     }
