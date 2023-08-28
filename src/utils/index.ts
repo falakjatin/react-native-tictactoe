@@ -24,7 +24,7 @@ const increaseSize = (size: number) => {
 
 const manageWidthPer = (size: number) => {
     if (isTab()) {
-        return ((width * size) / 100) * 0.7
+        return ((width * size) / 100) * 0.5
     } else {
         return (width * size) / 100;
     }

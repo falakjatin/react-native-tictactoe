@@ -1,90 +1,99 @@
-import { View, TouchableWithoutFeedback, Image } from 'react-native'
-import React, { useState } from 'react'
+import { View, TouchableWithoutFeedback, Image, Text, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 
 import styles from './styles'
+import { CONDITIONS } from '../../constants'
 
-export const GAME_RESULT_NO = -1
-export const GAME_RESULT_USER= 0
-export const GAME_RESULT_AI =  1
-export const GAME_RESULT_TIE = 2
+const CROSS_ICON = require('../../assets/images/cross.png')
+const CIRCLE_ICON = require('../../assets/images/circle.png')
 
 const Game = () => {
 
-  const [userInputs, setUserInputs] = useState([])
-  const [aIInputs, setAIInputs] = useState([])
-  const [result, setResult] = useState(-1)
-  const [round, setRound] = useState(0)
+  const [userInputs, setUserInputs] = useState<number[]>([])
+  const [opInputs, setOpInputs] = useState<number[]>([])
+  const [result, setResult] = useState({ You: 0, Opponent: 0 })
+  const [winner, setWinner] = useState<'You' | 'Opponent' | ''>('')
+
+  useEffect(() => {
+    // check if the user has lost or not
+  }, [userInputs, opInputs])
+
+  const AIAction = (currSelected: number[]) => {
+    const winner = decideWinner(currSelected)
+    console.log(winner)
+    if (winner !== '') {
+      setWinner(winner)
+      return
+    }
+    while (true) {
+      const inputs = currSelected.concat(opInputs)
+      const randomNumber = Math.round(Math.random() * 8.3)
+      if (inputs.every(d => d !== randomNumber)) {
+        setOpInputs(opInputs.concat(randomNumber))
+        break
+      }
+    }
+  }
+
+  const decideWinner = (currSelected: number[]) => {
+    let decision: '' | 'You' | 'Opponent' = ''
+    for (let i = 0; i < CONDITIONS.length; i++) {
+      if (CONDITIONS[i].every(a => currSelected.includes(a))) {
+        decision = 'You'
+        break
+      }
+      if (CONDITIONS[i].every(a => opInputs.includes(a))) {
+        decision = 'Opponent'
+        break
+      }
+    }
+    return decision
+  }
+
+  const resetGame = () => {
+    setUserInputs([])
+    setOpInputs([])
+    if (winner)
+      setResult({ ...result, [winner]: result[winner] + 1 })
+    setWinner('')
+  }
+
+  const opponentStep = (pos: number) => {
+    if (!opInputs.includes(pos)) {
+      setOpInputs([...opInputs, pos])
+    }
+  }
+
+  const afterProceedingStep = (i: number) => {
+    setUserInputs([...userInputs, i])
+    AIAction([...userInputs, i])
+  }
 
   return (
     <View style={styles.container}>
+      <Text>YOU: {result.You}</Text>
+      <Text>Opponent: {result.Opponent}</Text>
       <View style={styles.cubeContainer}>
-        <TouchableWithoutFeedback>
+        {numbers.map((i) => <TouchableWithoutFeedback
+          key={i}
+          onPress={() => afterProceedingStep(i)}
+          disabled={(userInputs.includes(i) || opInputs.includes(i)) && !!winner}>
           <View style={styles.cubes}>
-            <Image
+            {(userInputs.includes(i) || opInputs.includes(i)) && <Image
               style={styles.icons}
-              source={require('../../assets/images/circle.png')} />
+              source={userInputs.includes(i) ? CIRCLE_ICON : CROSS_ICON} />}
           </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/close.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/circle.png')} />
-          </View>
-        </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>)}
       </View>
-      <View style={styles.cubeContainer}>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/close.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/close.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/circle.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-      </View>
-      <View style={styles.cubeContainer}>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/circle.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/close.png')} />
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.cubes}>
-            <Image
-              style={styles.icons}
-              source={require('../../assets/images/circle.png')} />
-          </View>
-        </TouchableWithoutFeedback>
+      <View style={styles.resultContainer}>
+        {winner === 'You' && <Text>Congratulation!</Text>}
+        {winner && <Text>{winner + ' won the game.'}</Text>}
+        <TouchableOpacity
+          style={styles.button}
+          activeOpacity={0.7}
+          onPress={resetGame}>
+          <Text style={styles.btnText}>Reset</Text>
+        </TouchableOpacity>
       </View>
     </View>
   )
