@@ -2,7 +2,7 @@ import { Dimensions } from "react-native";
 
 import DeviceInfo from "react-native-device-info";
 
-const { height, width } = Dimensions.get('window')
+const { height, width } = Dimensions.get('screen')
 
 const isTab = () => DeviceInfo.isTablet()
 

@@ -32,20 +32,6 @@ const styles = StyleSheet.create({
         height: '65%',
         width: '65%',
     },
-    button: {
-        backgroundColor: '#1d4ed8',
-        borderRadius: 6,
-        width: '100%',
-        alignItems: 'center',
-        paddingVertical: Utils.manageWidthPer(2.8),
-        marginVertical: Utils.manageWidthPer(2),
-    },
-    btnText: {
-        textTransform: 'uppercase',
-        color: '#fff',
-        fontSize: Utils.manageWidthPer(4),
-        fontWeight: '500',
-    },
     resultContainer: {
         width: Utils.manageWidthPer(90),
         alignItems: 'center',

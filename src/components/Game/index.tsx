@@ -4,11 +4,13 @@ import {
   TouchableWithoutFeedback,
   Image,
   Text,
-  TouchableOpacity,
 } from 'react-native'
 
-import styles from './styles'
+import Button from '../Button'
+
 import { CONDITIONS } from '../../constants'
+
+import styles from './styles'
 
 const CROSS_ICON = require('../../assets/images/cross.png')
 const CIRCLE_ICON = require('../../assets/images/circle.png')
@@ -19,10 +21,6 @@ const Game = () => {
   const [opInputs, setOpInputs] = useState<number[]>([])
   const [result, setResult] = useState({ You: 0, Opponent: 0, Draw: 0 })
   const [winner, setWinner] = useState<DecisionType>('')
-
-  // useEffect(() => {
-  //   // check if the user has lost or not
-  // }, [userInputs, opInputs])
 
   const AIAction = (currSelected: number[]) => {
     const winner = decideWinner(currSelected, opInputs)
@@ -102,12 +100,7 @@ const Game = () => {
         {winner === 'You' && <Text>Congratulation!</Text>}
         {(winner === 'Opponent' || winner === 'You') && <Text>{winner + ' won the game.'}</Text>}
         {winner === 'Draw' && <Text>{'Game ' + winner}</Text>}
-        <TouchableOpacity
-          style={styles.button}
-          activeOpacity={0.7}
-          onPress={resetGame}>
-          <Text style={styles.btnText}>Reset</Text>
-        </TouchableOpacity>
+        <Button title='RESET' onPress={resetGame} />
       </View>
     </View>
   )

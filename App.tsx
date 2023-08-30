@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text } from 'react-native'
+import { SafeAreaView, StyleSheet, View } from 'react-native'
 import React from 'react'
 import RootStack from './src/navigators'
 

@@ -6,12 +6,12 @@ import MultiPlayerScreen from '../screens/MultiPlayer';
 import MultiPlayerSingleDeviceScreen from '../screens/MultiPlayerSingleDevice';
 import SinglePlayerScreen from '../screens/SinglePlayer';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackScreensParamList>();
 
 const RootStack = () => {
     return (
         <NavigationContainer>
-            <Stack.Navigator>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Multiplayer" component={MultiPlayerScreen} />
                 <Stack.Screen name="MultiplayerSingleDevice" component={MultiPlayerSingleDeviceScreen} />
@@ -22,3 +22,10 @@ const RootStack = () => {
 }
 
 export default RootStack
+
+export type RootStackScreensParamList = {
+    Home: {} | undefined,
+    Multiplayer: {} | undefined,
+    MultiplayerSingleDevice: {} | undefined,
+    Singleplayer: {} | undefined,
+}
