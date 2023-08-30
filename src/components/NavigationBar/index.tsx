@@ -19,14 +19,15 @@ const NavigationBar: React.FC<NavigationBar> = ({
 }) => {
     return (
         <View style={styles.container}>
-            {onRightSidePress ? <TouchableOpacity
+            <TouchableOpacity
+                disabled={!onRightSidePress}
                 style={styles.iconContainer}
                 activeOpacity={0.7}
                 onPress={onRightSidePress}>
-                <Image style={styles.rightIcon} source={backIcon} />
-            </TouchableOpacity> : <View />}
+                {onRightSidePress && <Image style={styles.rightIcon} source={backIcon} />}
+            </TouchableOpacity>
             <Text style={styles.title}>{title}</Text>
-            <View />
+            <View style={styles.iconContainer} />
         </View>
     )
 }

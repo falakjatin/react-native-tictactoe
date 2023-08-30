@@ -10,10 +10,7 @@ module.exports = {
   ],
   rules: {
     'prettier/prettier': 0,
-    'react-hooks/exhaustive-deps': 'off',
-    'react/no-did-update-set-state': 'off',
-    'no-return-assign': 'off',
-    'no-shadow': 'off',
-    'semi': 'off',
+    'semi': 0,
+    'react-hooks/exhaustive-deps': 0,
   },
 };

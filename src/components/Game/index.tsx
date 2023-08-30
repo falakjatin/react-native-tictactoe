@@ -15,32 +15,56 @@ import styles from './styles'
 const CROSS_ICON = require('../../assets/images/cross.png')
 const CIRCLE_ICON = require('../../assets/images/circle.png')
 
-const Game = () => {
+const Game: React.FC<Game> = ({ type = 'singledevice' }) => {
 
   const [userInputs, setUserInputs] = useState<number[]>([])
   const [opInputs, setOpInputs] = useState<number[]>([])
   const [result, setResult] = useState({ You: 0, Opponent: 0, Draw: 0 })
   const [winner, setWinner] = useState<DecisionType>('')
 
-  const AIAction = (currSelected: number[]) => {
-    const winner = decideWinner(currSelected, opInputs)
+  const gameAction = (currStep: number) => {
+    const isCircle = (userInputs.length + opInputs.length) % 2 === 0
+    const userSteps = [...userInputs]
+    const opSteps = [...opInputs]
+    if (isCircle) {
+      userSteps.push(currStep)
+      setUserInputs(userSteps)
+    }
+    let winner = decideWinner(userSteps, opSteps)
     if (winner !== '') {
       setWinner(winner)
-      return
     }
-    while (true) {
-      const inputs = currSelected.concat(opInputs)
-      const randomNumber = Math.round(Math.random() * 8.3)
-      if (inputs.every(d => d !== randomNumber)) {
-        const newSteps = opInputs.concat(randomNumber)
-        setOpInputs(newSteps)
-        const winner = decideWinner(currSelected, newSteps)
-        if (winner !== '') {
-          setWinner(winner)
-        }
-        break
+    if (!winner) {
+      switch (type) {
+        case 'singleplayer':
+          while (true) {
+            const inputs = userSteps.concat(opSteps)
+            const randomNumber = Math.round(Math.random() * 8.3)
+            if (inputs.every(d => d !== randomNumber)) {
+              opSteps.push(randomNumber)
+              setOpInputs(opSteps)
+              break
+            }
+          }
+          break;
+
+        case 'singledevice':
+          if (!isCircle) {
+            opSteps.push(currStep)
+            setOpInputs(opSteps)
+          }
+          break;
+
+        default:
+          break;
       }
     }
+
+    winner = decideWinner(userSteps, opSteps)
+    if (winner !== '') {
+      setWinner(winner)
+    }
+
   }
 
   const decideWinner = (userInputs: number[], opInputs: number[]) => {
@@ -58,26 +82,16 @@ const Game = () => {
     if (((userInputs.length + opInputs.length) === 9) && !decision) {
       decision = 'Draw'
     }
+    if (decision)
+      setResult({ ...result, [decision]: result[decision] + 1 })
+
     return decision
   }
 
   const resetGame = () => {
     setUserInputs([])
     setOpInputs([])
-    if (winner)
-      setResult({ ...result, [winner]: result[winner] + 1 })
     setWinner('')
-  }
-
-  const opponentStep = (pos: number) => {
-    if (!opInputs.includes(pos)) {
-      setOpInputs([...opInputs, pos])
-    }
-  }
-
-  const afterProceedingStep = (i: number) => {
-    setUserInputs([...userInputs, i])
-    AIAction([...userInputs, i])
   }
 
   return (
@@ -87,7 +101,7 @@ const Game = () => {
       <View style={styles.cubeContainer}>
         {numbers.map((i) => <TouchableWithoutFeedback
           key={i}
-          onPress={() => afterProceedingStep(i)}
+          onPress={() => gameAction(i)}
           disabled={(userInputs.includes(i) || opInputs.includes(i)) || !!winner}>
           <View style={styles.cubes}>
             {(userInputs.includes(i) || opInputs.includes(i)) && <Image
@@ -111,3 +125,7 @@ export default Game
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 type DecisionType = '' | 'Opponent' | 'You' | 'Draw' | ''
+
+interface Game {
+  type: 'singleplayer' | 'singledevice' | 'multiplayer'
+}
