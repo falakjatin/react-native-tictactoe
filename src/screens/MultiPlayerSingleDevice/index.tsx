@@ -1,12 +1,31 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-const MultiPlayerSingleDeviceScreen = () => {
+import { NetworkInfo } from 'react-native-network-info'
+import Game from '../../components/Game'
+
+const MultiPlayerSingleDeviceScreen: React.FC<MultiPlayerSingleDeviceScreen> = ({
+  hostIp
+}) => {
+
+  const [clientIp, setClientIp] = useState('')
+
+  useEffect(() => {
+    fetchIpAddress()
+  }, [])
+
+  const fetchIpAddress = async () => {
+    const ip = await NetworkInfo.getIPV4Address();
+    if (ip)
+      setClientIp(ip);
+  }
+
   return (
-    <View>
-      <Text>Multiplayer Single Device Screen</Text>
-    </View>
+    clientIp && <Game clientIp={clientIp} hostIp={hostIp || clientIp} />
   )
 }
 
 export default MultiPlayerSingleDeviceScreen
+
+interface MultiPlayerSingleDeviceScreen {
+  hostIp: string
+}
