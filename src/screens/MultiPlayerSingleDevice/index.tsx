@@ -1,31 +1,28 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { View } from 'react-native'
 
-import { NetworkInfo } from 'react-native-network-info'
 import Game from '../../components/Game'
+import { StackScreenProps } from '@react-navigation/stack'
+import { RootStackScreensParamList } from '../../navigators'
+import NavigationBar from '../../components/NavigationBar'
+
+import global from '../../styles/global'
 
 const MultiPlayerSingleDeviceScreen: React.FC<MultiPlayerSingleDeviceScreen> = ({
-  hostIp
+  navigation,
+  route: { params: { ip } },
 }) => {
-
-  const [clientIp, setClientIp] = useState('')
-
-  useEffect(() => {
-    fetchIpAddress()
-  }, [])
-
-  const fetchIpAddress = async () => {
-    const ip = await NetworkInfo.getIPV4Address();
-    if (ip)
-      setClientIp(ip);
-  }
-
   return (
-    clientIp && <Game clientIp={clientIp} hostIp={hostIp || clientIp} />
+    <View style={global.container}>
+      <NavigationBar onRightSidePress={() => navigation.goBack()} />
+      <Game
+        clientIp={ip}
+        hostIp={ip}
+        type='singledevice' />
+    </View>
   )
 }
 
 export default MultiPlayerSingleDeviceScreen
 
-interface MultiPlayerSingleDeviceScreen {
-  hostIp: string
-}
+type MultiPlayerSingleDeviceScreen = StackScreenProps<RootStackScreensParamList, 'MultiplayerSingleDevice'>

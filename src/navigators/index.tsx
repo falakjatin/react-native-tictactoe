@@ -11,7 +11,7 @@ const Stack = createStackNavigator<RootStackScreensParamList>();
 const RootStack = () => {
     return (
         <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Navigator detachInactiveScreens={true} screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Multiplayer" component={MultiPlayerScreen} />
                 <Stack.Screen name="MultiplayerSingleDevice" component={MultiPlayerSingleDeviceScreen} />
@@ -25,7 +25,7 @@ export default RootStack
 
 export type RootStackScreensParamList = {
     Home: {} | undefined,
-    Multiplayer: {} | undefined,
-    MultiplayerSingleDevice: {} | undefined,
-    Singleplayer: {} | undefined,
+    Multiplayer: { ip: string },
+    MultiplayerSingleDevice: { ip: string },
+    Singleplayer: { ip: string },
 }

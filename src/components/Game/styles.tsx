@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
 
 import Utils from '../../utils'
 
@@ -7,6 +7,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        marginHorizontal: Utils.manageWidthPer(4),
     },
     text: {
         color: '#000',
@@ -21,7 +22,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
     },
     cubeContainer: {
-        backgroundColor: 'red',
         width: Utils.manageWidthPer(90),
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -35,7 +35,42 @@ const styles = StyleSheet.create({
     resultContainer: {
         width: Utils.manageWidthPer(90),
         alignItems: 'center',
-    }
+        position: 'absolute',
+        bottom: 0,
+    },
+    scoreContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginVertical: Utils.manageWidthPer(3),
+    },
+    scoreIcon: {
+        height: Utils.manageWidthPer(3),
+        width: Utils.manageWidthPer(3),
+    },
+    scoreWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    scoreText: {
+        fontSize: Utils.manageWidthPer(4),
+        fontWeight: '500',
+        marginLeft: Utils.manageWidthPer(2),
+    },
+    congratText: {
+        fontSize: Utils.manageWidthPer(6),
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    winDescText: {
+        fontSize: Utils.manageWidthPer(4),
+        fontWeight: '400',
+        textAlign: 'center',
+    },
+    winText: {
+        marginVertical: Utils.manageWidthPer(3),
+    },
 })
 
 export default styles

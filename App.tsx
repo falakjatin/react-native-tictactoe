@@ -1,19 +1,15 @@
-import { SafeAreaView, StyleSheet, View } from 'react-native'
 import React from 'react'
+import { SafeAreaView } from 'react-native'
+
 import RootStack from './src/navigators'
+import global from './src/styles/global'
 
 const App = () => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={global.container}>
       <RootStack />
     </SafeAreaView>
   )
 }
 
 export default App
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  }
-})

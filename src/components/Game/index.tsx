@@ -19,13 +19,13 @@ const CROSS_ICON = require('../../assets/images/cross.png')
 const CIRCLE_ICON = require('../../assets/images/circle.png')
 const PORT = 8888
 
-const Game: React.FC<Game> = ({ type = 'singledevice', clientIp, hostIp }) => {
+const Game: React.FC<Game> = ({ type, clientIp, hostIp }) => {
 
   const socketRef = useRef<UdpSocketType | null>(null)
+  const inputsRef = useRef<inputsState>({ circleInputs: [], crossInputs: [] })
 
-  const [userInputs, setUserInputs] = useState<number[]>([])
-  const [opInputs, setOpInputs] = useState<number[]>([])
-  const [result, setResult] = useState({ You: 0, Opponent: 0, Draw: 0 })
+  const [inputs, setInputsSteps] = useState<inputsState>({ circleInputs: [], crossInputs: [] })
+  const [result, setResult] = useState({ Circle: 0, Cross: 0, Draw: 0 })
   const [winner, setWinner] = useState<DecisionType>('')
 
   useEffect(() => {
@@ -39,24 +39,29 @@ const Game: React.FC<Game> = ({ type = 'singledevice', clientIp, hostIp }) => {
     };
   }, [])
 
+  const setInputs = (inputs: inputsState) => {
+    console.log(inputs)
+    inputsRef.current = inputs;
+    setInputsSteps(inputs)
+  };
+
   const socketOnMessage = (data: string, rinfo: any) => {
-    const parsed: payloadType = JSON.parse(data)
+    const parsed = data.toString()
     if (rinfo?.address === clientIp || rinfo?.address === hostIp) {
-      if (parsed.msg === 'RESET') {
+      if (parsed === 'RESET') {
         resetGame()
       } else {
-        gameAction(parseInt(parsed.msg))
+        gameAction(parseInt(parsed))
       }
     } else {
-      if (!data.includes('Room Unavailable'))
+      if (!parsed.includes('Room Unavailable'))
         sendMsgToSocket({ msg: 'Room Unavailable -- ' + rinfo?.address, ip: rinfo?.address })
     }
   }
 
   const sendMsgToSocket = ({ msg, ip, port = PORT }: sendMsgToSocketType) => {
-    console.log(msg)
     socketRef.current?.send(
-      JSON.stringify(msg),
+      msg,
       undefined,
       undefined,
       port,
@@ -71,115 +76,115 @@ const Game: React.FC<Game> = ({ type = 'singledevice', clientIp, hostIp }) => {
   }
 
   const gameAction = (currStep: number) => {
+    const circleInputs = [...inputsRef.current.circleInputs]
+    const crossInputs = [...inputsRef.current.crossInputs]
+    const isCircle = (circleInputs.length + crossInputs.length) % 2 === 0
 
-    // GO TO FOR THE SOLUTION
-    // https://medium.com/geographit/accessing-react-state-in-event-listeners-with-usestate-and-useref-hooks-8cceee73c559
-
-    console.log('userInputs.length --  ', userInputs, userInputs.length)
-    console.log('opInputs.length --  ', opInputs, opInputs.length)
-    const isCircle = (userInputs.length + opInputs.length) % 2 === 0
-    console.log('isCircle -- ', isCircle)
-    const userSteps = [...userInputs]
-    const opSteps = [...opInputs]
     if (isCircle) {
-      userSteps.push(currStep)
-      setUserInputs(userSteps)
+      circleInputs.push(currStep)
+      setInputs({ circleInputs, crossInputs })
     }
-    let winner = decideWinner(userSteps, opSteps)
+    let winner = decideWinner(circleInputs, crossInputs)
     if (winner !== '') {
       setWinner(winner)
-    }
-    if (!winner) {
-      switch (type) {
-        case 'singleplayer':
-          while (true) {
-            const inputs = userSteps.concat(opSteps)
-            const randomNumber = Math.round(Math.random() * 8.3)
-            if (inputs.every(d => d !== randomNumber)) {
-              opSteps.push(randomNumber)
-              setOpInputs(opSteps)
-              break
-            }
+    } else {
+      if (type === 'singleplayer') {
+        while (true) {
+          const inputs = circleInputs.concat(crossInputs)
+          const randomNumber = Math.round(Math.random() * 8.3)
+          if (inputs.every(d => d !== randomNumber)) {
+            crossInputs.push(randomNumber)
+            break
           }
-          break;
-
-        case 'singledevice':
-          if (!isCircle) {
-            opSteps.push(currStep)
-            setOpInputs(opSteps)
-          }
-          break;
-
-        default:
-          console.log('default called')
-          break;
+        }
+      } else {
+        if (!isCircle) {
+          crossInputs.push(currStep)
+        }
       }
-    }
-
-    winner = decideWinner(userSteps, opSteps)
-    if (winner !== '') {
-      setWinner(winner)
+      setInputs({ circleInputs, crossInputs })
+      winner = decideWinner(circleInputs, crossInputs)
+      if (winner !== '') {
+        setWinner(winner)
+      }
     }
   }
 
-  const decideWinner = (userInputs: number[], opInputs: number[]) => {
+  const decideWinner = (circleInputs: number[], crossInputs: number[]) => {
     let decision: DecisionType = ''
     for (let i = 0; i < CONDITIONS.length; i++) {
-      if (CONDITIONS[i].every(a => userInputs.includes(a))) {
-        decision = 'You'
+      if (CONDITIONS[i].every(a => circleInputs.includes(a))) {
+        decision = 'Circle'
         break
       }
-      if (CONDITIONS[i].every(a => opInputs.includes(a))) {
-        decision = 'Opponent'
+      if (CONDITIONS[i].every(a => crossInputs.includes(a))) {
+        decision = 'Cross'
         break
       }
     }
-    if (((userInputs.length + opInputs.length) === 9) && !decision) {
+    if (((circleInputs.length + crossInputs.length) === 9) && !decision) {
       decision = 'Draw'
     }
-    if (decision)
-      setResult({ ...result, [decision]: result[decision] + 1 })
+    setResult((result) => (decision ? { ...result, [decision]: result[decision] + 1 } : result))
 
     return decision
   }
 
   const resetGame = () => {
-    console.log('line no 141')
-    setUserInputs([])
-    setOpInputs([])
     setWinner('')
+    setInputs({ crossInputs: [], circleInputs: [] })
+  }
+
+  const onPressTile = (tileNum: number) => {
+    sendMsgToSocket({
+      msg: `${tileNum}`,
+      ip: hostIp,
+    })
+    if (type === 'multiplayer') {
+      gameAction(tileNum)
+    }
   }
 
   return (
     <View style={styles.container}>
-      <Text>YOU: {result.You}</Text>
-      <Text>Opponent: {result.Opponent}</Text>
+      <View style={styles.scoreContainer}>
+        <View style={styles.scoreWrap}>
+          <Image
+            style={styles.scoreIcon}
+            source={CIRCLE_ICON} />
+          <Text style={styles.scoreText}>Circle: {result.Circle}</Text>
+        </View>
+        <View style={styles.scoreWrap}>
+          <Image
+            style={styles.scoreIcon}
+            source={CROSS_ICON} />
+          <Text style={styles.scoreText}>Cross: {result.Cross}</Text>
+        </View>
+      </View>
       <View style={styles.cubeContainer}>
         {numbers.map((i) => <TouchableWithoutFeedback
           key={i}
-          onPress={() => sendMsgToSocket({
-            msg: {
-              type: 'gamemove',
-              msg: i,
-            },
-            ip: hostIp
-          })}
-          disabled={(userInputs.includes(i) || opInputs.includes(i)) || !!winner}>
+          onPress={() => onPressTile(i)}
+          disabled={(inputs.circleInputs.includes(i) || inputs.crossInputs.includes(i)) || !!winner}>
           <View style={styles.cubes}>
-            {(userInputs.includes(i) || opInputs.includes(i)) && <Image
+            {(inputs.circleInputs.includes(i) || inputs.crossInputs.includes(i)) && <Image
               style={styles.icons}
-              source={userInputs.includes(i) ? CIRCLE_ICON : CROSS_ICON} />}
+              source={inputs.circleInputs.includes(i) ? CIRCLE_ICON : CROSS_ICON} />}
           </View>
         </TouchableWithoutFeedback>)}
       </View>
       <View style={styles.resultContainer}>
-        {winner === 'You' && <Text>Congratulation!</Text>}
-        {(winner === 'Opponent' || winner === 'You') && <Text>{winner + ' won the game.'}</Text>}
-        {winner === 'Draw' && <Text>{'Game ' + winner}</Text>}
-        <Button title='RESET' onPress={() => sendMsgToSocket({
-          msg: { msg: 'RESET' },
-          ip: hostIp
-        })} />
+        <View style={styles.winText}>
+          {winner === 'Circle' && <Text style={styles.congratText}>Congratulation!</Text>}
+          {(winner === 'Cross' || winner === 'Circle') && <Text style={styles.winDescText}>{winner + ' won the game.'}</Text>}
+          {winner === 'Draw' && <Text style={styles.winDescText}>{'Game ' + winner}</Text>}
+        </View>
+        <Button
+          title='RESET'
+          onPress={() => {
+            sendMsgToSocket({ msg: 'RESET', ip: hostIp })
+            sendMsgToSocket({ msg: 'RESET', ip: clientIp })
+          }} />
       </View>
     </View>
   )
@@ -189,21 +194,21 @@ export default Game
 
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
-type DecisionType = '' | 'Opponent' | 'You' | 'Draw' | ''
+type DecisionType = '' | 'Cross' | 'Circle' | 'Draw'
 
 interface Game {
-  type?: 'singleplayer' | 'singledevice' | 'multiplayer',
+  type: 'singleplayer' | 'singledevice' | 'multiplayer',
   hostIp: string,
   clientIp: string,
 }
 
-interface payloadType {
-  type: 'joinrequest' | 'gamemove',
-  msg: string,
-}
-
 interface sendMsgToSocketType {
-  msg: any,
+  msg: string,
   port?: number,
   ip: string,
+}
+
+interface inputsState {
+  crossInputs: number[],
+  circleInputs: number[],
 }

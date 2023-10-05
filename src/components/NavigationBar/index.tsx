@@ -14,7 +14,7 @@ import Utils from '../../utils'
 const backIcon = require('../../assets/images/back.png')
 
 const NavigationBar: React.FC<NavigationBar> = ({
-    title,
+    title = '',
     onRightSidePress,
 }) => {
     return (
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
 })
 
 interface NavigationBar {
-    title: string,
+    title?: string,
     onRightSidePress?: ((event: NativeSyntheticEvent<NativeTouchEvent>) => void) | undefined;
 }
